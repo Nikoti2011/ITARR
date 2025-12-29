@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Is this a Rickroll?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎵 Is this a Rickroll?</h1>
+    <p class="subtitle">Paste a link. No previews. No trust.</p>
+
+    <input
+      id="linkInput"
+      type="text"
+      placeholder="Paste link here..."
+      autocomplete="off"
+    />
+
+    <button id="checkBtn">Check</button>
+
+    <div id="result" class="hidden"></div>
+
+    <div id="addSection" class="hidden">
+      <input
+        id="reasonInput"
+        type="text"
+        placeholder="Optional note (why is it a rickroll?)"
+      />
+      <button id="submitBtn">Submit</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is This a Rickroll?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-container {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .check-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .check-btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: none;
+        }
+
+        .result.safe {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .result.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .feedback-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .wrong-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .wrong-btn:hover {
+            background: #ee5a52;
+        }
+
+        .submit-section {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .submit-section input {
+            margin-bottom: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #51cf66;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #40c057;
+        }
+
+        .stats {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Is This a Rickroll?</h1>
+        <p class="subtitle">Paste a suspicious link below to check if it's safe</p>
+
+        <div class="input-container">
+            <input type="text" id="linkInput" placeholder="Paste your link here (no preview!)">
+        </div>
+
+        <button class="check-btn" onclick="checkLink()">Check Link</button>
+
+        <div class="result" id="result">
+            <div class="emoji" id="emoji"></div>
+            <div id="resultText"></div>
+        </div>
+
+        <div class="feedback-section" id="feedbackSection">
+            <button class="wrong-btn" id="wrongBtn" onclick="showSubmitForm()">Wrong? Add to Database</button>
+        </div>
+
+        <div class="submit-section" id="submitSection">
+            <input type="text" id="newLinkInput" placeholder="Enter the rickroll link">
+            <button class="submit-btn" onclick="submitNewLink()">Submit to Database</button>
+        </div>
+
+        <div class="stats" id="stats">
+            Database contains <span id="dbCount">0</span> known rickroll links
+        </div>
+    </div>
+
+    <script>
+        // Initialize rickroll database
+        let rickrollDatabase = [
+            'youtube.com/watch?v=dQw4w9WgXcQ',
+            'youtu.be/dQw4w9WgXcQ',
+            'youtube.com/watch?v=oHg5SJYRHA0',
+            'tiktok.com/@rickastleyofficial',
+            'bit.ly/98K8eH',
+            'bit.ly/2UcC2VG',
+            'rickroll.com',
+            'rr.noordstar.me',
+            'youtube.com/watch?v=V-_O7nl0Ii0',
+            'youtu.be/V-_O7nl0Ii0'
+        ];
+
+        let lastCheckedLink = '';
+        let lastResult = false;
+
+        function normalizeLink(link) {
+            link = link.trim().toLowerCase();
+            link = link.replace(/^https?:\/\//i, '');
+            link = link.replace(/^www\./i, '');
+            link = link.replace(/\/+$/, '');
+            return link;
+        }
+
+        function checkLink() {
+            const input = document.getElementById('linkInput');
+            const link = input.value.trim();
+
+            if (!link) {
+                alert('Please paste a link first!');
+                return;
+            }
+
+            lastCheckedLink = link;
+            const normalizedLink = normalizeLink(link);
+            
+            const isRickroll = rickrollDatabase.some(dbLink => {
+                return normalizedLink.includes(normalizeLink(dbLink));
+            });
+
+            lastResult = isRickroll;
+            displayResult(isRickroll);
+            updateStats();
+        }
+
+        function displayResult(isRickroll) {
+            const resultDiv = document.getElementById('result');
+            const emoji = document.getElementById('emoji');
+            const resultText = document.getElementById('resultText');
+            const feedbackSection = document.getElementById('feedbackSection');
+
+            resultDiv.style.display = 'block';
+            feedbackSection.style.display = 'block';
+
+            if (isRickroll) {
+                resultDiv.className = 'result danger';
+                emoji.textContent = '⚠️';
+                resultText.innerHTML = '<strong>DANGER!</strong><br>This is a known rickroll link!';
+            } else {
+                resultDiv.className = 'result safe';
+                emoji.textContent = '✅';
+                resultText.innerHTML = '<strong>SAFE!</strong><br>This link is not in our rickroll database';
+            }
+
+            document.getElementById('submitSection').style.display = 'none';
+        }
+
+        function showSubmitForm() {
+            const submitSection = document.getElementById('submitSection');
+            const newLinkInput = document.getElementById('newLinkInput');
+            
+            submitSection.style.display = 'block';
+            
+            if (lastResult === false) {
+                newLinkInput.value = lastCheckedLink;
+            } else {
+                newLinkInput.value = '';
+            }
+        }
+
+        function submitNewLink() {
+            const newLink = document.getElementById('newLinkInput').value.trim();
+
+            if (!newLink) {
+                alert('Please enter a link to add to the database!');
+                return;
+            }
+
+            const normalizedLink = normalizeLink(newLink);
+            const alreadyExists = rickrollDatabase.some(dbLink => 
+                normalizeLink(dbLink) === normalizedLink
+            );
+
+            if (alreadyExists) {
+                alert('This link is already in the database!');
+                return;
+            }
+
+            rickrollDatabase.push(normalizedLink);
+            alert('Thanks! Link added to the database.');
+            
+            document.getElementById('submitSection').style.display = 'none';
+            document.getElementById('newLinkInput').value = '';
+            updateStats();
+            
+            if (lastCheckedLink) {
+                checkLink();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('dbCount').textContent = rickrollDatabase.length;
+        }
+
+        document.getElementById('linkInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkLink();
+            }
+        });
+
+        updateStats();
+    </script>
+</body>
+</html>
